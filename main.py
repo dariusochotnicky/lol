@@ -76,8 +76,8 @@ def read_root():
                             <span class="text-xs font-semibold text-amber-900">Mám klubovú kartu (zľava 10%)</span>
                         </label>
                         <div id="club-card-details" class="hidden space-y-2 mt-2 pt-2 border-t border-amber-200">
-                            <input type="email" id="club-email" placeholder="Váš e-mail" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
-                            <input type="text" id="club-number" maxlength="6" placeholder="6-ciferné číslo karty (napr. 123456)" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
+                            <input type="email" id="club-email" oninput="updateCartUI()" placeholder="Váš e-mail" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
+                            <input type="text" id="club-number" maxlength="6" oninput="updateCartUI()" placeholder="6-ciferné číslo karty" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
                         </div>
                     </div>
 
@@ -286,6 +286,8 @@ def read_root():
                 const totalSpan = document.getElementById("cart-total");
                 const checkoutSection = document.getElementById("checkout-section");
                 const hasClubCard = document.getElementById("has-club-card").checked;
+                const clubEmail = document.getElementById("club-email").value.trim();
+                const clubNumber = document.getElementById("club-number").value.trim();
 
                 let totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
                 let totalPrice = 0;
@@ -298,7 +300,8 @@ def read_root():
                     totalPrice += currentItemPrice * item.qty;
                 });
 
-                if (hasClubCard) {
+                const isClubCardValid = hasClubCard && clubEmail !== "" && clubNumber.length === 6;
+                if (isClubCardValid) {
                     totalPrice = totalPrice * 0.9;
                 }
 
@@ -329,8 +332,8 @@ def read_root():
                 const name = document.getElementById("name").value;
                 const address = document.getElementById("address").value;
                 const hasClubCard = document.getElementById("has-club-card").checked;
-                const clubEmail = document.getElementById("club-email").value;
-                const clubNumber = document.getElementById("club-number").value;
+                const clubEmail = document.getElementById("club-email").value.trim();
+                const clubNumber = document.getElementById("club-number").value.trim();
 
                 if (!name || !address) {
                     alert("Prosím, vyplňte meno a doručovaciu adresu.");
@@ -339,7 +342,7 @@ def read_root():
 
                 if (hasClubCard) {
                     if (!clubEmail || !clubNumber || clubNumber.length !== 6) {
-                        alert("Pre uplatnenie klubovej karty zadajte svoj e-mail a 6-ciferné číslo karty.");
+                        alert("Pre uplatnenie klubovej karty zadajte svoj e-mail a presne 6-ciferné číslo karty.");
                         return;
                     }
                 }
