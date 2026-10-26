@@ -25,7 +25,7 @@ def read_root():
             <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                 <div class="flex items-center space-x-2 cursor-pointer" onclick="showStore()">
                     <span class="text-3xl">🐝</span>
-                    <span class="text-xl font-bold tracking-wide">Včelnica u dvoch bratov</span>
+                    <span class="text-xl font-bold tracking-wide">Včelnica U 2 bratov</span>
                 </div>
                 <div class="flex items-center space-x-3">
                     <button onclick="openAdminLogin()" class="bg-amber-800 hover:bg-amber-900 text-xs px-3 py-2 rounded-xl transition shadow">
@@ -42,8 +42,8 @@ def read_root():
         <!-- HLAVNÝ OBSAH (OBCHOD) -->
         <main id="store-section" class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
-                <h1 class="text-3xl font-bold text-amber-900 mb-2">Naše včelie produkty</h1>
-                <p class="text-amber-700 mb-6">100% čistý domáci med a produkty priamo od dvoch bratov včelárov.</p>
+                <h1 class="text-3xl font-bold text-amber-900 mb-2">Naše produkty</h1>
+                <p class="text-amber-700 mb-6">Roddinné včelárstvo na úpätí tribečských vrchoch.</p>
                 
                 <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <!-- Produkty -->
@@ -127,7 +127,7 @@ def read_root():
                 { id: 1, name: "Kvetový med 950g", price: 8.50, icon: "🍯", desc: "Jemný krémový kvetový med z jarných lúk." },
                 { id: 2, name: "Lesný med 950g", price: 10.00, icon: "🌲", desc: "Tmavý, aromatický lesný med plný minerálov." },
                 { id: 3, name: "Med s vlašskými orechmi", price: 7.00, icon: "🥜", desc: "Kombinácia lahodného medu a chrumkavých orechov." },
-                { id: 4, name: "Včelí propolis (tinktúra)", price: 6.50, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." }
+                { id: 4, name: "Včelí propolis (tinktúra)", price: 5.50, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." }
             ];
 
             let cart = [];
