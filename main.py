@@ -70,11 +70,15 @@ def read_root():
 
                 <div id="checkout-section" class="hidden">
                     <!-- KLUBOVÁ KARTA -->
-                    <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 mb-4">
-                        <label class="flex items-center space-x-2 cursor-pointer">
-                            <input type="checkbox" id="has-club-card" onchange="updateCartUI()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
+                    <div class="bg-amber-50 p-3.5 rounded-xl border border-amber-200 mb-4">
+                        <label class="flex items-center space-x-2 cursor-pointer mb-2">
+                            <input type="checkbox" id="has-club-card" onchange="toggleClubCard()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
                             <span class="text-xs font-semibold text-amber-900">Mám klubovú kartu (zľava 10%)</span>
                         </label>
+                        <div id="club-card-details" class="hidden space-y-2 mt-2 pt-2 border-t border-amber-200">
+                            <input type="email" id="club-email" placeholder="Váš e-mail" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
+                            <input type="text" id="club-number" maxlength="6" placeholder="6-ciferné číslo karty (napr. 123456)" class="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500 bg-white">
+                        </div>
                     </div>
 
                     <h3 class="font-semibold text-slate-700 mb-3 text-sm">Doručovacie údaje</h3>
@@ -263,6 +267,19 @@ def read_root():
                 updateCartUI();
             }
 
+            function toggleClubCard() {
+                const details = document.getElementById("club-card-details");
+                const checkbox = document.getElementById("has-club-card");
+                if (checkbox.checked) {
+                    details.classList.remove("hidden");
+                } else {
+                    details.classList.add("hidden");
+                    document.getElementById("club-email").value = "";
+                    document.getElementById("club-number").value = "";
+                }
+                updateCartUI();
+            }
+
             function updateCartUI() {
                 const cartContainer = document.getElementById("cart-items");
                 const countBadge = document.getElementById("cart-count");
@@ -274,7 +291,6 @@ def read_root():
                 let totalPrice = 0;
 
                 cart.forEach(item => {
-                    // Kontrola množstevnej zľavy
                     let currentItemPrice = item.price;
                     if (item.bulkPrice && item.bulkMin && item.qty >= item.bulkMin) {
                         currentItemPrice = item.bulkPrice;
@@ -282,7 +298,6 @@ def read_root():
                     totalPrice += currentItemPrice * item.qty;
                 });
 
-                // Aplikovanie klubovej karty (napr. dodatočných 10% zľava z celkovej sumy)
                 if (hasClubCard) {
                     totalPrice = totalPrice * 0.9;
                 }
@@ -313,13 +328,22 @@ def read_root():
             function checkout() {
                 const name = document.getElementById("name").value;
                 const address = document.getElementById("address").value;
+                const hasClubCard = document.getElementById("has-club-card").checked;
+                const clubEmail = document.getElementById("club-email").value;
+                const clubNumber = document.getElementById("club-number").value;
 
                 if (!name || !address) {
                     alert("Prosím, vyplňte meno a doručovaciu adresu.");
                     return;
                 }
 
-                // Odčítanie zo skladu po úspešnom nákupe
+                if (hasClubCard) {
+                    if (!clubEmail || !clubNumber || clubNumber.length !== 6) {
+                        alert("Pre uplatnenie klubovej karty zadajte svoj e-mail a 6-ciferné číslo karty.");
+                        return;
+                    }
+                }
+
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
@@ -340,9 +364,11 @@ def read_root():
                 document.getElementById("name").value = "";
                 document.getElementById("address").value = "";
                 document.getElementById("has-club-card").checked = false;
+                document.getElementById("club-email").value = "";
+                document.getElementById("club-number").value = "";
+                document.getElementById("club-card-details").classList.add("hidden");
             }
 
-            // Štartovacie načítanie
             renderProducts();
         </script>
     </body>
