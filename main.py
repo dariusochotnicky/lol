@@ -151,14 +151,21 @@ def read_root():
 
         <!-- JAVASCRIPT -->
         <script>
-            let products = [
+            const defaultProducts = [
                 { id: 1, name: "Kvetový med 950g", price: 8.50, stock: 25, bulkPrice: 7.50, bulkMin: 3, icon: "🍯", desc: "Jemný krémový kvetový med z jarných lúk." },
                 { id: 2, name: "Lesný med 950g", price: 10.00, stock: 20, bulkPrice: 9.00, bulkMin: 3, icon: "🌲", desc: "Tmavý, aromatický lesný med plný minerálov." },
                 { id: 3, name: "Med s vlašskými orechmi", price: 7.00, stock: 15, bulkPrice: 6.00, bulkMin: 3, icon: "🥜", desc: "Kombinácia lahodného medu a chrumkavých orechov." },
                 { id: 4, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." }
             ];
 
+            // Načítanie produktov z localStorage, ak tam nie sú, použijú sa predvolené
+            let products = JSON.parse(localStorage.getItem("vcelnica_products")) || defaultProducts;
             let cart = [];
+
+            // Funkcia na uloženie produktov do pamäte prehliadača
+            function saveProducts() {
+                localStorage.setItem("vcelnica_products", JSON.stringify(products));
+            }
 
             function renderProducts() {
                 const grid = document.getElementById("product-grid");
@@ -255,6 +262,7 @@ def read_root():
 
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
                 products.push({ id: newId, name, price, stock, bulkPrice, bulkMin, icon, desc });
+                saveProducts(); // Uloženie do localStorage
 
                 document.getElementById("new-name").value = "";
                 document.getElementById("new-price").value = "";
@@ -277,6 +285,7 @@ def read_root():
                 const product = products.find(p => p.id === id);
                 if (product) {
                     product.stock = inputVal;
+                    saveProducts(); // Uloženie do localStorage
                     alert(`Sklad pre "${product.name}" bol aktualizovaný na ${inputVal} ks.`);
                     renderAdminList();
                 }
@@ -284,6 +293,7 @@ def read_root():
 
             function deleteProduct(id) {
                 products = products.filter(p => p.id !== id);
+                saveProducts(); // Uloženie do localStorage
                 renderAdminList();
             }
 
@@ -393,12 +403,14 @@ def read_root():
                     }
                 }
 
+                // Odčítanie kusov zo skladu a uplatnenie do trvalej pamäte
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
                         prod.stock -= cartItem.qty;
                     }
                 });
+                saveProducts(); // Uloženie nových stavov skladu po nákupe
 
                 document.getElementById("checkout-section").classList.add("hidden");
                 document.getElementById("cart-items").innerHTML = "";
