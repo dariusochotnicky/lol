@@ -131,6 +131,19 @@ def read_root():
             </div>
         </main>
 
+        <!-- ADMIN LOGIN MODAL (S BODKAMI) -->
+        <div id="admin-login-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-amber-100">
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Admin prihlásenie</h3>
+                <p class="text-xs text-slate-500 mb-4">Zadajte administrátorské heslo:</p>
+                <input type="password" id="admin-password-input" placeholder="Heslo" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm mb-4 focus:outline-none focus:border-amber-500">
+                <div class="flex space-x-2">
+                    <button onclick="submitAdminLogin()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 rounded-xl text-sm transition">Prihlásiť</button>
+                    <button onclick="closeAdminLogin()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-xl text-sm transition">Zrušiť</button>
+                </div>
+            </div>
+        </div>
+
         <!-- PÄTIČKA -->
         <footer class="bg-amber-900 text-amber-100 py-6 text-center text-sm mt-auto">
             <p>&copy; 2026 Včelnica u dvoch bratov. Všetky práva vyhradené. Vyrábané s láskou k prírode 🐝</p>
@@ -177,27 +190,46 @@ def read_root():
             function renderAdminList() {
                 const list = document.getElementById("admin-product-list");
                 list.innerHTML = products.map(p => `
-                    <div class="py-3 flex justify-between items-center w-full text-sm">
+                    <div class="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center w-full text-sm gap-3">
                         <div class="flex items-center space-x-3">
                             <span class="text-2xl">${p.icon}</span>
                             <div>
                                 <span class="font-bold text-slate-800">${p.name}</span>
-                                <div class="text-xs text-slate-500">Cena: ${p.price.toFixed(2)} € | Sklad: ${p.stock} ks | Zľava: ${p.bulkPrice ? p.bulkPrice.toFixed(2)+'€' : 'žiadna'} (od ${p.bulkMin}ks)</div>
+                                <div class="text-xs text-slate-500">Cena: ${p.price.toFixed(2)} € | Zľava: ${p.bulkPrice ? p.bulkPrice.toFixed(2)+'€' : 'žiadna'} (od ${p.bulkMin}ks)</div>
                             </div>
                         </div>
-                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg transition">Odstrániť</button>
+                        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-slate-500">Sklad:</span>
+                                <input type="number" id="stock-input-${p.id}" value="${p.stock}" class="w-16 p-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold">
+                                <button onclick="updateStock(${p.id})" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition">Uložiť</button>
+                            </div>
+                            <button onclick="deleteProduct(${p.id})" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold px-3 py-1.5 rounded-lg transition">Odstrániť</button>
+                        </div>
                     </div>
                 `).join('');
             }
 
             function openAdminLogin() {
-                const password = prompt("Zadajte admin heslo:");
+                document.getElementById("admin-password-input").value = "";
+                document.getElementById("admin-login-modal").classList.remove("hidden");
+                document.getElementById("admin-password-input").focus();
+            }
+
+            function closeAdminLogin() {
+                document.getElementById("admin-login-modal").classList.add("hidden");
+            }
+
+            function submitAdminLogin() {
+                const password = document.getElementById("admin-password-input").value;
                 if (password === "tatik") {
+                    closeAdminLogin();
                     document.getElementById("store-section").classList.add("hidden");
                     document.getElementById("admin-section").classList.remove("hidden");
                     renderAdminList();
-                } else if (password !== null) {
+                } else {
                     alert("Nesprávne heslo!");
+                    document.getElementById("admin-password-input").value = "";
                 }
             }
 
@@ -234,6 +266,20 @@ def read_root():
 
                 renderAdminList();
                 alert("Produkt bol úspešne pridaný!");
+            }
+
+            function updateStock(id) {
+                const inputVal = parseInt(document.getElementById(`stock-input-${id}`).value);
+                if (isNaN(inputVal) || inputVal < 0) {
+                    alert("Zadajte platné číslo pre sklad.");
+                    return;
+                }
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    product.stock = inputVal;
+                    alert(`Sklad pre "${product.name}" bol aktualizovaný na ${inputVal} ks.`);
+                    renderAdminList();
+                }
             }
 
             function deleteProduct(id) {
