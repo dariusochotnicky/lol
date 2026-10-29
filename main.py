@@ -43,7 +43,12 @@ def read_root():
         <main id="store-section" class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
                 <h1 class="text-3xl font-bold text-amber-900 mb-2">Naše produkty</h1>
-                <p class="text-amber-700 mb-6">Rodinné včelárstvo na úpätí Tribečských vrchov.</p>
+                <p class="text-amber-700 mb-4">Rodinné včelárstvo na úpätí Tribečských vrchov.</p>
+                
+                <!-- PRIDANÝ OBRÁZOK VČELNICE -->
+                <div class="mb-6 rounded-2xl overflow-hidden shadow-md border border-amber-200">
+                    <img src="https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=1200&q=80" alt="Včelnica u dvoch bratov" class="w-full h-64 sm:h-80 object-cover">
+                </div>
                 
                 <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <!-- Produkty -->
@@ -131,7 +136,7 @@ def read_root():
             </div>
         </main>
 
-        <!-- ADMIN LOGIN MODAL (S BODKAMI) -->
+        <!-- ADMIN LOGIN MODAL -->
         <div id="admin-login-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-amber-100">
                 <h3 class="text-lg font-bold text-slate-800 mb-2">Admin prihlásenie</h3>
@@ -158,11 +163,9 @@ def read_root():
                 { id: 4, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." }
             ];
 
-            // Načítanie produktov z localStorage, ak tam nie sú, použijú sa predvolené
             let products = JSON.parse(localStorage.getItem("vcelnica_products")) || defaultProducts;
             let cart = [];
 
-            // Funkcia na uloženie produktov do pamäte prehliadača
             function saveProducts() {
                 localStorage.setItem("vcelnica_products", JSON.stringify(products));
             }
@@ -262,7 +265,7 @@ def read_root():
 
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
                 products.push({ id: newId, name, price, stock, bulkPrice, bulkMin, icon, desc });
-                saveProducts(); // Uloženie do localStorage
+                saveProducts();
 
                 document.getElementById("new-name").value = "";
                 document.getElementById("new-price").value = "";
@@ -285,7 +288,7 @@ def read_root():
                 const product = products.find(p => p.id === id);
                 if (product) {
                     product.stock = inputVal;
-                    saveProducts(); // Uloženie do localStorage
+                    saveProducts();
                     alert(`Sklad pre "${product.name}" bol aktualizovaný na ${inputVal} ks.`);
                     renderAdminList();
                 }
@@ -293,7 +296,7 @@ def read_root():
 
             function deleteProduct(id) {
                 products = products.filter(p => p.id !== id);
-                saveProducts(); // Uloženie do localStorage
+                saveProducts();
                 renderAdminList();
             }
 
@@ -403,14 +406,13 @@ def read_root():
                     }
                 }
 
-                // Odčítanie kusov zo skladu a uplatnenie do trvalej pamäte
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
                         prod.stock -= cartItem.qty;
                     }
                 });
-                saveProducts(); // Uloženie nových stavov skladu po nákupe
+                saveProducts();
 
                 document.getElementById("checkout-section").classList.add("hidden");
                 document.getElementById("cart-items").innerHTML = "";
@@ -425,7 +427,7 @@ def read_root():
                 document.getElementById("name").value = "";
                 document.getElementById("address").value = "";
                 document.getElementById("has-club-card").checked = false;
-                document.getElementById("club-email").value = "";
+                document.getElementById("club-email").value.trim();
                 document.getElementById("club-number").value = "";
                 document.getElementById("club-card-details").classList.add("hidden");
             }
