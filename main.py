@@ -131,7 +131,7 @@ def read_root():
             </div>
         </main>
 
-        <!-- ADMIN LOGIN MODAL (S BODKAMI) -->
+        <!-- ADMIN LOGIN MODAL -->
         <div id="admin-login-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
             <div class="bg-white p-6 rounded-2xl shadow-xl max-w-sm w-full mx-4 border border-amber-100">
                 <h3 class="text-lg font-bold text-slate-800 mb-2">Admin prihlásenie</h3>
@@ -152,10 +152,13 @@ def read_root():
         <!-- JAVASCRIPT -->
         <script>
             const defaultProducts = [
-                { id: 1, name: "Kvetový med 950g", price: 8.50, stock: 25, bulkPrice: 7.50, bulkMin: 3, icon: "🍯", desc: "Jemný krémový kvetový med z jarných lúk." },
-                { id: 2, name: "Lesný med 950g", price: 10.00, stock: 20, bulkPrice: 9.00, bulkMin: 3, icon: "🌲", desc: "Tmavý, aromatický lesný med plný minerálov." },
-                { id: 3, name: "Med s vlašskými orechmi", price: 7.00, stock: 15, bulkPrice: 6.00, bulkMin: 3, icon: "🥜", desc: "Kombinácia lahodného medu a chrumkavých orechov." },
-                { id: 4, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." }
+                { id: 1, name: "Agátový med 950g", price: 9.50, stock: 20, bulkPrice: 8.50, bulkMin: 3, icon: "🌼", desc: "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
+                { id: 2, name: "Medovica lesná 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
+                { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
+                { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
+                { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
+                { id: 6, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
+                { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
 
             // Načítanie produktov z localStorage, ak tam nie sú, použijú sa predvolené
@@ -167,9 +170,16 @@ def read_root():
                 localStorage.setItem("vcelnica_products", JSON.stringify(products));
             }
 
+            // Pomocná funkcia na zoradenie produktov abecedne podľa názvu (sk)
+            function getSortedProducts() {
+                return [...products].sort((a, b) => a.name.localeCompare(b.name, 'sk'));
+            }
+
             function renderProducts() {
                 const grid = document.getElementById("product-grid");
-                grid.innerHTML = products.map(p => `
+                const sortedProducts = getSortedProducts();
+                
+                grid.innerHTML = sortedProducts.map(p => `
                     <div class="bg-white p-5 rounded-2xl shadow-sm border border-amber-100 flex flex-col justify-between hover:shadow-md transition">
                         <div>
                             <div class="flex justify-between items-start">
@@ -196,7 +206,9 @@ def read_root():
 
             function renderAdminList() {
                 const list = document.getElementById("admin-product-list");
-                list.innerHTML = products.map(p => `
+                const sortedProducts = getSortedProducts();
+
+                list.innerHTML = sortedProducts.map(p => `
                     <div class="py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center w-full text-sm gap-3">
                         <div class="flex items-center space-x-3">
                             <span class="text-2xl">${p.icon}</span>
@@ -262,7 +274,7 @@ def read_root():
 
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
                 products.push({ id: newId, name, price, stock, bulkPrice, bulkMin, icon, desc });
-                saveProducts(); // Uloženie do localStorage
+                saveProducts();
 
                 document.getElementById("new-name").value = "";
                 document.getElementById("new-price").value = "";
@@ -285,7 +297,7 @@ def read_root():
                 const product = products.find(p => p.id === id);
                 if (product) {
                     product.stock = inputVal;
-                    saveProducts(); // Uloženie do localStorage
+                    saveProducts();
                     alert(`Sklad pre "${product.name}" bol aktualizovaný na ${inputVal} ks.`);
                     renderAdminList();
                 }
@@ -293,7 +305,7 @@ def read_root():
 
             function deleteProduct(id) {
                 products = products.filter(p => p.id !== id);
-                saveProducts(); // Uloženie do localStorage
+                saveProducts();
                 renderAdminList();
             }
 
@@ -403,14 +415,13 @@ def read_root():
                     }
                 }
 
-                // Odčítanie kusov zo skladu a uplatnenie do trvalej pamäte
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
                         prod.stock -= cartItem.qty;
                     }
                 });
-                saveProducts(); // Uloženie nových stavov skladu po nákupe
+                saveProducts();
 
                 document.getElementById("checkout-section").classList.add("hidden");
                 document.getElementById("cart-items").innerHTML = "";
