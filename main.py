@@ -169,8 +169,8 @@ def read_root():
                 { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
                 { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
                 { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
-                { id: 6, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
-                { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
+                { id: 6, name: "Včelí propolis (tinktúra) 0,03l", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
+                { id: 7, name: "Včelí vosk - sviečka (veža 25g(sada 3ks))", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
 
             const STORAGE_VERSION = "vcelnica_v5";
