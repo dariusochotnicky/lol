@@ -30,7 +30,7 @@ def read_root():
                 <div class="flex items-center space-x-3">
                     <button onclick="openAdminLogin()" class="bg-amber-800 hover:bg-amber-900 text-xs px-3 py-2 rounded-xl transition shadow flex items-center space-x-1">
                         <span>⚙️ Admin Panel</span>
-                        <span id="admin-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">0</span>
+                        <span id="admin-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
                     </button>
                     <button onclick="toggleCart()" class="bg-amber-700 hover:bg-amber-800 px-4 py-2 rounded-xl flex items-center space-x-2 transition shadow">
                         <span>🛒 Košík</span>
@@ -173,7 +173,7 @@ def read_root():
                 { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
 
-            const STORAGE_VERSION = "vcelnica_v3";
+            const STORAGE_VERSION = "vcelnica_v5";
             if (localStorage.getItem("vcelnica_version") !== STORAGE_VERSION) {
                 localStorage.removeItem("vcelnica_products");
                 localStorage.setItem("vcelnica_version", STORAGE_VERSION);
@@ -287,25 +287,25 @@ def read_root():
                     }
 
                     return `
-                        py-4 flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-3">
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <span class="font-bold text-slate-900">${o.name}</span>
-                                ${statusBadge}
+                        <div class="py-4 flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-3">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-slate-900">${o.name}</span>
+                                    ${statusBadge}
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">📍 ${o.address}</div>
+                                <div class="text-xs text-amber-800 font-medium mt-1">Produkty: ${itemsHtml}</div>
+                                <div class="text-xs font-bold text-slate-700 mt-1">Celkom: ${o.total.toFixed(2)} € ${o.discount ? '(s 10% zľavou)' : ''}</div>
                             </div>
-                            <div class="text-xs text-slate-500 mt-0.5">📍 ${o.address}</div>
-                            <div class="text-xs text-amber-800 font-medium mt-1">Produkty: ${itemsHtml}</div>
-                            <div class="text-xs font-bold text-slate-700 mt-1">Celkom: ${o.total.toFixed(2)} € ${o.discount ? '(s 10% zľavou)' : ''}</div>
-                        </div>
-                        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
-                            ${o.status === 'pending' ? `
-                                <button onclick="approveOrder(${o.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">Schváliť (Odoslané)</button>
-                                <button onclick="rejectOrder(${o.id})" class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold px-3 py-2 rounded-xl transition">Zamietnuť</button>
-                            ` : `
-                                <button onclick="deleteOrder(${o.id})" class="text-slate-400 hover:text-red-600 text-xs underline">Vymazať z histórie</button>
-                            `}
-                        </div>
-                    </div>`;
+                            <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+                                ${o.status === 'pending' ? `
+                                    <button onclick="approveOrder(${o.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">Schváliť (Odoslané)</button>
+                                    <button onclick="rejectOrder(${o.id})" class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold px-3 py-2 rounded-xl transition">Zamietnuť</button>
+                                ` : `
+                                    <button onclick="deleteOrder(${o.id})" class="text-slate-400 hover:text-red-600 text-xs underline">Vymazať z histórie</button>
+                                `}
+                            </div>
+                        </div>`;
                 }).join('');
             }
 
@@ -529,7 +529,6 @@ def read_root():
                     totalPrice = totalPrice * 0.9;
                 }
 
-                // Vytvorenie novej objednávky pre admin panel
                 const newOrder = {
                     id: Date.now(),
                     name: name,
@@ -537,13 +536,12 @@ def read_root():
                     items: [...cart],
                     total: totalPrice,
                     discount: hasClubCard && clubEmail !== "" && clubNumber.length === 6,
-                    status: 'pending' // pending, approved, rejected
+                    status: 'pending'
                 };
 
                 orders.unshift(newOrder);
                 saveOrders();
 
-                // Odčítanie kusov zo skladu
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
