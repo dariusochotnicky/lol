@@ -157,8 +157,32 @@ def read_root():
         </div>
 
         <!-- PÄTIČKA -->
-        <footer class="bg-amber-900 text-amber-100 py-6 text-center text-sm mt-auto">
-            <p>&copy; 2026 Včelnica u dvoch bratov.Vyrábané s láskou k prírode. Všetky práva vyhradené.🐝.</p>
+        <footer class="bg-amber-900 text-amber-100 py-10 mt-auto border-t border-amber-800">
+            <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- O nás -->
+                <div>
+                    <h3 class="text-lg font-bold text-amber-200 mb-3 flex items-center space-x-2">
+                        <span>🐝 O nás</span>
+                    </h3>
+                    <p class="text-sm text-amber-200/80 leading-relaxed">
+                        Sme rodinné včelárstvo pôsobiace v malebnom prostredí pod Tribečskými vrchmi. S láskou a úctou k prírode sa staráme o naše včelstvá, aby sme vám priniesli ten najkvalitnejší domáci med a včelie produkty priamo z úľa až na váš stôl.
+                    </p>
+                </div>
+                <!-- Kontakty -->
+                <div>
+                    <h3 class="text-lg font-bold text-amber-200 mb-3 flex items-center space-x-2">
+                        <span>📞 Kontakt</span>
+                    </h3>
+                    <ul class="text-sm text-amber-200/80 space-y-2">
+                        <li>📍 <strong>Lokalita:</strong> Žirany</li>
+                        <li>📞 <strong>Telefón:</strong> 0908 625 122</li>
+                        <li>✉️ <strong>E-mail:</strong> darius.ochotnicky@gmail.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 pt-6 border-t border-amber-800/60 text-center text-xs text-amber-300/60">
+                <p>&copy; 2026 Včelnica u dvoch bratov. Všetky práva vyhradené. Vyrábané s láskou k prírode 🐝</p>
+            </div>
         </footer>
 
         <!-- JAVASCRIPT -->
@@ -169,11 +193,11 @@ def read_root():
                 { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
                 { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
                 { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
-                { id: 6, name: "Včelí propolis (tinktúra) 0,03l", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
-                { id: 7, name: "Včelí vosk - sviečka (veža 25g(sada 3ks))", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
+                { id: 6, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
+                { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
 
-            const STORAGE_VERSION = "vcelnica_v5";
+            const STORAGE_VERSION = "vcelnica_v6";
             if (localStorage.getItem("vcelnica_version") !== STORAGE_VERSION) {
                 localStorage.removeItem("vcelnica_products");
                 localStorage.setItem("vcelnica_version", STORAGE_VERSION);
