@@ -158,7 +158,7 @@ def read_root():
 
         <!-- PÄTIČKA -->
         <footer class="bg-amber-900 text-amber-100 py-6 text-center text-sm mt-auto">
-            <p>&copy; 2026 Včelnica u dvoch bratov. Všetky práva vyhradené. Vyrábané s láskou k prírode 🐝</p>
+            <p>&copy; 2026 Včelnica u dvoch bratov.Vyrábané s láskou k prírode. Všetky práva vyhradené.🐝.</p>
         </footer>
 
         <!-- JAVASCRIPT -->
