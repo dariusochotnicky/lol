@@ -28,8 +28,9 @@ def read_root():
                     <span class="text-xl font-bold tracking-wide">Včelnica U 2 bratov</span>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="openAdminLogin()" class="bg-amber-800 hover:bg-amber-900 text-xs px-3 py-2 rounded-xl transition shadow">
-                        ⚙️ Admin Panel
+                    <button onclick="openAdminLogin()" class="bg-amber-800 hover:bg-amber-900 text-xs px-3 py-2 rounded-xl transition shadow flex items-center space-x-1">
+                        <span>⚙️ Admin Panel</span>
+                        <span id="admin-badge" class="hidden bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">0</span>
                     </button>
                     <button onclick="toggleCart()" class="bg-amber-700 hover:bg-amber-800 px-4 py-2 rounded-xl flex items-center space-x-2 transition shadow">
                         <span>🛒 Košík</span>
@@ -103,8 +104,19 @@ def read_root():
         <!-- ADMIN PANEL -->
         <main id="admin-section" class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full hidden">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-3xl font-bold text-amber-900">⚙️ Správa produktov (Admin)</h1>
+                <h1 class="text-3xl font-bold text-amber-900">⚙️ Admin Panel</h1>
                 <button onclick="showStore()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 text-sm font-semibold px-4 py-2 rounded-xl">← Späť do obchodu</button>
+            </div>
+
+            <!-- SEKCIA: OBJEDNÁVKY -->
+            <div class="bg-white p-6 rounded-2xl shadow-md border border-amber-100 mb-8">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
+                    <span>📦 Prichádzajúce objednávky</span>
+                    <span id="orders-count-badge" class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full">0 nových</span>
+                </h2>
+                <div id="admin-orders-list" class="divide-y divide-amber-100">
+                    <p class="text-slate-400 text-sm py-4 text-center">Zatiaľ žiadne objednávky.</p>
+                </div>
             </div>
 
             <!-- Formulár na pridanie produktu -->
@@ -153,7 +165,7 @@ def read_root():
         <script>
             const defaultProducts = [
                 { id: 1, name: "Agátový med 950g", price: 9.50, stock: 20, bulkPrice: 8.50, bulkMin: 3, icon: "🌼", desc: "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
-                { id: 2, name: "Medovica 333ml", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
+                { id: 2, name: "Medovica 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
                 { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
                 { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
                 { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
@@ -161,23 +173,36 @@ def read_root():
                 { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
 
-            // Vynútenie načítania nového zoznamu vymazaním starej vyrovnávacej pamäte
-            const STORAGE_VERSION = "vcelnica_v2";
+            const STORAGE_VERSION = "vcelnica_v3";
             if (localStorage.getItem("vcelnica_version") !== STORAGE_VERSION) {
                 localStorage.removeItem("vcelnica_products");
                 localStorage.setItem("vcelnica_version", STORAGE_VERSION);
             }
 
-            // Načítanie produktov z localStorage, ak tam nie sú, použijú sa predvolené
             let products = JSON.parse(localStorage.getItem("vcelnica_products")) || defaultProducts;
+            let orders = JSON.parse(localStorage.getItem("vcelnica_orders")) || [];
             let cart = [];
 
-            // Funkcia na uloženie produktov do pamäte prehliadača
             function saveProducts() {
                 localStorage.setItem("vcelnica_products", JSON.stringify(products));
             }
 
-            // Pomocná funkcia na zoradenie produktov abecedne podľa názvu (s podporou slovenskej abecedy)
+            function saveOrders() {
+                localStorage.setItem("vcelnica_orders", JSON.stringify(orders));
+                updateAdminBadge();
+            }
+
+            function updateAdminBadge() {
+                const pendingOrders = orders.filter(o => o.status === 'pending');
+                const badge = document.getElementById("admin-badge");
+                if (pendingOrders.length > 0) {
+                    badge.innerText = pendingOrders.length;
+                    badge.classList.remove("hidden");
+                } else {
+                    badge.classList.add("hidden");
+                }
+            }
+
             function getSortedProducts() {
                 return [...products].sort((a, b) => a.name.localeCompare(b.name, 'sk'));
             }
@@ -234,6 +259,79 @@ def read_root():
                         </div>
                     </div>
                 `).join('');
+
+                renderAdminOrders();
+            }
+
+            function renderAdminOrders() {
+                const ordersList = document.getElementById("admin-orders-list");
+                const badgeCount = document.getElementById("orders-count-badge");
+                const pendingCount = orders.filter(o => o.status === 'pending').length;
+
+                badgeCount.innerText = `${pendingCount} nových`;
+
+                if (orders.length === 0) {
+                    ordersList.innerHTML = `<p class="text-slate-400 text-sm py-4 text-center">Zatiaľ žiadne objednávky.</p>`;
+                    return;
+                }
+
+                ordersList.innerHTML = orders.map(o => {
+                    let itemsHtml = o.items.map(i => `${i.qty}× ${i.name}`).join(', ');
+                    let statusBadge = '';
+                    if (o.status === 'pending') {
+                        statusBadge = `<span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">Nová</span>`;
+                    } else if (o.status === 'approved') {
+                        statusBadge = `<span class="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">Odoslané ✅</span>`;
+                    } else {
+                        statusBadge = `<span class="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-1 rounded-full">Zamietnuté ❌</span>`;
+                    }
+
+                    return `
+                        py-4 flex flex-col md:flex-row justify-between items-start md:items-center text-sm gap-3">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-slate-900">${o.name}</span>
+                                ${statusBadge}
+                            </div>
+                            <div class="text-xs text-slate-500 mt-0.5">📍 ${o.address}</div>
+                            <div class="text-xs text-amber-800 font-medium mt-1">Produkty: ${itemsHtml}</div>
+                            <div class="text-xs font-bold text-slate-700 mt-1">Celkom: ${o.total.toFixed(2)} € ${o.discount ? '(s 10% zľavou)' : ''}</div>
+                        </div>
+                        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
+                            ${o.status === 'pending' ? `
+                                <button onclick="approveOrder(${o.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-semibold px-3 py-2 rounded-xl transition shadow">Schváliť (Odoslané)</button>
+                                <button onclick="rejectOrder(${o.id})" class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold px-3 py-2 rounded-xl transition">Zamietnuť</button>
+                            ` : `
+                                <button onclick="deleteOrder(${o.id})" class="text-slate-400 hover:text-red-600 text-xs underline">Vymazať z histórie</button>
+                            `}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            function approveOrder(id) {
+                const order = orders.find(o => o.id === id);
+                if (order) {
+                    order.status = 'approved';
+                    saveOrders();
+                    renderAdminOrders();
+                    alert(`Objednávka od ${order.name} bola schválená a označená ako odoslaná! 📦`);
+                }
+            }
+
+            function rejectOrder(id) {
+                const order = orders.find(o => o.id === id);
+                if (order) {
+                    order.status = 'rejected';
+                    saveOrders();
+                    renderAdminOrders();
+                }
+            }
+
+            function deleteOrder(id) {
+                orders = orders.filter(o => o.id !== id);
+                saveOrders();
+                renderAdminOrders();
             }
 
             function openAdminLogin() {
@@ -337,10 +435,6 @@ def read_root():
                 updateCartUI();
             }
 
-            function removeFromTag(id) {
-                // zachované
-            }
-
             function removeFromCart(id) {
                 cart = cart.filter(item => item.id !== id);
                 updateCartUI();
@@ -408,8 +502,8 @@ def read_root():
             }
 
             function checkout() {
-                const name = document.getElementById("name").value;
-                const address = document.getElementById("address").value;
+                const name = document.getElementById("name").value.trim();
+                const address = document.getElementById("address").value.trim();
                 const hasClubCard = document.getElementById("has-club-card").checked;
                 const clubEmail = document.getElementById("club-email").value.trim();
                 const clubNumber = document.getElementById("club-number").value.trim();
@@ -426,6 +520,30 @@ def read_root():
                     }
                 }
 
+                let totalPrice = 0;
+                cart.forEach(item => {
+                    let currentItemPrice = (item.bulkPrice && item.bulkMin && item.qty >= item.bulkMin) ? item.bulkPrice : item.price;
+                    totalPrice += currentItemPrice * item.qty;
+                });
+                if (hasClubCard && clubEmail !== "" && clubNumber.length === 6) {
+                    totalPrice = totalPrice * 0.9;
+                }
+
+                // Vytvorenie novej objednávky pre admin panel
+                const newOrder = {
+                    id: Date.now(),
+                    name: name,
+                    address: address,
+                    items: [...cart],
+                    total: totalPrice,
+                    discount: hasClubCard && clubEmail !== "" && clubNumber.length === 6,
+                    status: 'pending' // pending, approved, rejected
+                };
+
+                orders.unshift(newOrder);
+                saveOrders();
+
+                // Odčítanie kusov zo skladu
                 cart.forEach(cartItem => {
                     const prod = products.find(p => p.id === cartItem.id);
                     if (prod) {
@@ -453,6 +571,7 @@ def read_root():
             }
 
             renderProducts();
+            updateAdminBadge();
         </script>
     </body>
     </html>
