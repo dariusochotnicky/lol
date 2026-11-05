@@ -153,7 +153,7 @@ def read_root():
         <script>
             const defaultProducts = [
                 { id: 1, name: "Agátový med 950g", price: 9.50, stock: 20, bulkPrice: 8.50, bulkMin: 3, icon: "🌼", desc: "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
-                { id: 2, name: "Medovica lesná 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
+                { id: 2, name: "Medovica 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
                 { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
                 { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
                 { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
@@ -170,7 +170,7 @@ def read_root():
                 localStorage.setItem("vcelnica_products", JSON.stringify(products));
             }
 
-            // Pomocná funkcia na zoradenie produktov abecedne podľa názvu (sk)
+            // Pomocná funkcia na zoradenie produktov abecedne podľa názvu (s podporou slovenskej abecedy)
             function getSortedProducts() {
                 return [...products].sort((a, b) => a.name.localeCompare(b.name, 'sk'));
             }
