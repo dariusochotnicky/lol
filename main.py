@@ -153,13 +153,20 @@ def read_root():
         <script>
             const defaultProducts = [
                 { id: 1, name: "Agátový med 950g", price: 9.50, stock: 20, bulkPrice: 8.50, bulkMin: 3, icon: "🌼", desc: "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
-                { id: 2, name: "Medovica 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
+                { id: 2, name: "Medovica 333ml", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
                 { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
                 { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
                 { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
                 { id: 6, name: "Včelí propolis (tinktúra)", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
                 { id: 7, name: "Včelí vosk - sviečka (sada 3ks)", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
             ];
+
+            // Vynútenie načítania nového zoznamu vymazaním starej vyrovnávacej pamäte
+            const STORAGE_VERSION = "vcelnica_v2";
+            if (localStorage.getItem("vcelnica_version") !== STORAGE_VERSION) {
+                localStorage.removeItem("vcelnica_products");
+                localStorage.setItem("vcelnica_version", STORAGE_VERSION);
+            }
 
             // Načítanie produktov z localStorage, ak tam nie sú, použijú sa predvolené
             let products = JSON.parse(localStorage.getItem("vcelnica_products")) || defaultProducts;
@@ -328,6 +335,10 @@ def read_root():
                     cart.push({ ...product, qty: 1 });
                 }
                 updateCartUI();
+            }
+
+            function removeFromTag(id) {
+                // zachované
             }
 
             function removeFromCart(id) {
