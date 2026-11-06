@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from typing import List, Optional
+import time
 
 app = FastAPI()
 
@@ -16,7 +17,7 @@ initial_products = [
     { "id": 7, "name": "Včelí vosk - sviečka (sada 3ks)", "price": 6.00, "stock": 14, "bulkPrice": 5.00, "bulkMin": 3, "icon": "🕯️", "desc": "Voňavé sviečky zo 100% čistého včelieho vosku." }
 ]
 
-# Pamäť na serveri (databáza v pamäti)
+# Serverová pamäť
 server_products = initial_products.copy()
 server_orders = []
 
@@ -82,12 +83,14 @@ def get_orders():
 @app.post("/api/orders")
 def create_order(order: Order):
     order_dict = order.dict()
-    order_dict["id"] = int(id(order_dict)) # príp. timestamp ID
+    order_dict["id"] = int(time.time() * 1000) # Jedinečné časové ID pre objednávku
+    
     # Odčítanie zo skladu na serveri
     for item in order.items:
         for p in server_products:
-            if p["id"] == item["id"]:
-                p["stock"] = max(0, p["stock"] - item["qty"])
+            if p["id"] == item.id:
+                p["stock"] = max(0, p["stock"] - item.qty)
+                
     server_orders.insert(0, order_dict)
     return {"status": "success", "order": order_dict}
 
@@ -667,6 +670,7 @@ def read_root():
                 document.getElementById("club-email").value = "";
                 document.getElementById("club-number").value = "";
                 document.getElementById("club-card-details").classList.add("hidden");
+                loadData();
             }
 
             loadData();
