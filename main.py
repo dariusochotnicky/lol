@@ -1,7 +1,109 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
+from typing import List, Optional
 
 app = FastAPI()
+
+# Pôvodné predvolené produkty
+initial_products = [
+    { "id": 1, "name": "Agátový med 950g", "price": 9.50, "stock": 20, "bulkPrice": 8.50, "bulkMin": 3, "icon": "🌼", "desc": "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
+    { "id": 2, "name": "Medovica 950g", "price": 11.00, "stock": 15, "bulkPrice": 10.00, "bulkMin": 3, "icon": "🌳", "desc": "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
+    { "id": 3, "name": "Repkový med 950g", "price": 7.50, "stock": 25, "bulkPrice": 6.50, "bulkMin": 3, "icon": "🌾", "desc": "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
+    { "id": 4, "name": "Tradičná medovina 0,75l", "price": 12.00, "stock": 18, "bulkPrice": 10.50, "bulkMin": 2, "icon": "🏺", "desc": "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
+    { "id": 5, "name": "Včelí peľ (sušený) 250g", "price": 6.50, "stock": 22, "bulkPrice": 5.50, "bulkMin": 3, "icon": "🟡", "desc": "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
+    { "id": 6, "name": "Včelí propolis (tinktúra)", "price": 5.50, "stock": 30, "bulkPrice": 4.50, "bulkMin": 3, "icon": "🌿", "desc": "Prírodné antibiotikum na posilnenie imunity." },
+    { "id": 7, "name": "Včelí vosk - sviečka (sada 3ks)", "price": 6.00, "stock": 14, "bulkPrice": 5.00, "bulkMin": 3, "icon": "🕯️", "desc": "Voňavé sviečky zo 100% čistého včelieho vosku." }
+]
+
+# Pamäť na serveri (databáza v pamäti)
+server_products = initial_products.copy()
+server_orders = []
+
+class Product(BaseModel):
+    id: Optional[int] = None
+    name: str
+    price: float
+    stock: int
+    bulkPrice: Optional[float] = None
+    bulkMin: Optional[int] = 3
+    icon: str
+    desc: str
+
+class StockUpdate(BaseModel):
+    stock: int
+
+class OrderItem(BaseModel):
+    id: int
+    name: str
+    price: float
+    qty: int
+    icon: str
+
+class Order(BaseModel):
+    id: Optional[int] = None
+    name: str
+    address: str
+    items: List[OrderItem]
+    total: float
+    discount: bool
+    status: str = "pending"
+
+@app.get("/api/products")
+def get_products():
+    return server_products
+
+@app.post("/api/products")
+def add_product(product: Product):
+    new_id = max([p["id"] for p in server_products], default=0) + 1
+    p_dict = product.dict()
+    p_dict["id"] = new_id
+    server_products.append(p_dict)
+    return {"status": "success", "product": p_dict}
+
+@app.put("/api/products/{product_id}/stock")
+def update_stock(product_id: int, update: StockUpdate):
+    for p in server_products:
+        if p["id"] == product_id:
+            p["stock"] = update.stock
+            return {"status": "success"}
+    raise HTTPException(status_code=404, detail="Produkt nebol nájdený")
+
+@app.delete("/api/products/{product_id}")
+def delete_product(product_id: int):
+    global server_products
+    server_products = [p for p in server_products if p["id"] != product_id]
+    return {"status": "success"}
+
+@app.get("/api/orders")
+def get_orders():
+    return server_orders
+
+@app.post("/api/orders")
+def create_order(order: Order):
+    order_dict = order.dict()
+    order_dict["id"] = int(id(order_dict)) # príp. timestamp ID
+    # Odčítanie zo skladu na serveri
+    for item in order.items:
+        for p in server_products:
+            if p["id"] == item["id"]:
+                p["stock"] = max(0, p["stock"] - item["qty"])
+    server_orders.insert(0, order_dict)
+    return {"status": "success", "order": order_dict}
+
+@app.put("/api/orders/{order_id}/status")
+def update_order_status(order_id: int, status_data: dict):
+    for o in server_orders:
+        if o["id"] == order_id:
+            o["status"] = status_data.get("status")
+            return {"status": "success"}
+    raise HTTPException(status_code=404, detail="Objednávka nebola nájdená")
+
+@app.delete("/api/orders/{order_id}")
+def delete_order(order_id: int):
+    global server_orders
+    server_orders = [o for o in server_orders if o["id"] != order_id]
+    return {"status": "success"}
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
@@ -159,7 +261,6 @@ def read_root():
         <!-- PÄTIČKA -->
         <footer class="bg-amber-900 text-amber-100 py-10 mt-auto border-t border-amber-800">
             <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <!-- O nás -->
                 <div>
                     <h3 class="text-lg font-bold text-amber-200 mb-3 flex items-center space-x-2">
                         <span>🐝 O nás</span>
@@ -168,7 +269,6 @@ def read_root():
                         Sme rodinné včelárstvo pôsobiace v malebnom prostredí pod Tribečskými vrchmi. S láskou a úctou k prírode sa staráme o naše včelstvá, aby sme vám priniesli ten najkvalitnejší domáci med a včelie produkty priamo z úľa až na váš stôl.
                     </p>
                 </div>
-                <!-- Kontakty -->
                 <div>
                     <h3 class="text-lg font-bold text-amber-200 mb-3 flex items-center space-x-2">
                         <span>📞 Kontakt</span>
@@ -187,43 +287,20 @@ def read_root():
 
         <!-- JAVASCRIPT -->
         <script>
-            const defaultProducts = [
-                { id: 1, name: "Agátový med 950g", price: 9.50, stock: 20, bulkPrice: 8.50, bulkMin: 3, icon: "🌼", desc: "Jemný, tekutý med z agátových hájov, ktorý kryštalizuje len veľmi pomaly." },
-                { id: 2, name: "Medovica 950g", price: 11.00, stock: 15, bulkPrice: 10.00, bulkMin: 3, icon: "🌳", desc: "Vzácna lesná medovica plná minerálov z hlbokých hôr Tribeča." },
-                { id: 3, name: "Repkový med 950g", price: 7.50, stock: 25, bulkPrice: 6.50, bulkMin: 3, icon: "🌾", desc: "Rýchlo kryštalizujúci krémový med s vysokým obsahom hroznového cukru." },
-                { id: 4, name: "Tradičná medovina 0,75l", price: 12.00, stock: 18, bulkPrice: 10.50, bulkMin: 2, icon: "🏺", desc: "Poctivý kvasený medový nápoj vyrobený studenou cestou." },
-                { id: 5, name: "Včelí peľ (sušený) 250g", price: 6.50, stock: 22, bulkPrice: 5.50, bulkMin: 3, icon: "🟡", desc: "Prírodná bomba plná vitamínov, bielkovín a enzýmov." },
-                { id: 6, name: "Včelí propolis (tinktúra) 0,03l", price: 5.50, stock: 30, bulkPrice: 4.50, bulkMin: 3, icon: "🌿", desc: "Prírodné antibiotikum na posilnenie imunity." },
-                { id: 7, name: "Včelí vosk - sviečka(veža(sada 3ks)) 45g", price: 6.00, stock: 14, bulkPrice: 5.00, bulkMin: 3, icon: "🕯️", desc: "Voňavé sviečky zo 100% čistého včelieho vosku." }
-            ];
-
-            const STORAGE_VERSION = "vcelnica_v6";
-            if (localStorage.getItem("vcelnica_version") !== STORAGE_VERSION) {
-                localStorage.removeItem("vcelnica_products");
-                localStorage.setItem("vcelnica_version", STORAGE_VERSION);
-            }
-
-            let products = JSON.parse(localStorage.getItem("vcelnica_products")) || defaultProducts;
-            let orders = JSON.parse(localStorage.getItem("vcelnica_orders")) || [];
+            let products = [];
+            let orders = [];
             let cart = [];
 
-            function saveProducts() {
-                localStorage.setItem("vcelnica_products", JSON.stringify(products));
-            }
-
-            function saveOrders() {
-                localStorage.setItem("vcelnica_orders", JSON.stringify(orders));
-                updateAdminBadge();
-            }
-
-            function updateAdminBadge() {
-                const pendingOrders = orders.filter(o => o.status === 'pending');
-                const badge = document.getElementById("admin-badge");
-                if (pendingOrders.length > 0) {
-                    badge.innerText = pendingOrders.length;
-                    badge.classList.remove("hidden");
-                } else {
-                    badge.classList.add("hidden");
+            async function loadData() {
+                try {
+                    const prodRes = await fetch('/api/products');
+                    products = await prodRes.json();
+                    const ordRes = await fetch('/api/orders');
+                    orders = await ordRes.json();
+                    renderProducts();
+                    updateAdminBadge();
+                } catch (e) {
+                    console.error("Chyba pri načítaní dát zo servera", e);
                 }
             }
 
@@ -333,28 +410,29 @@ def read_root():
                 }).join('');
             }
 
-            function approveOrder(id) {
-                const order = orders.find(o => o.id === id);
-                if (order) {
-                    order.status = 'approved';
-                    saveOrders();
-                    renderAdminOrders();
-                    alert(`Objednávka od ${order.name} bola schválená a označená ako odoslaná! 📦`);
-                }
+            async function approveOrder(id) {
+                await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: 'approved'})
+                });
+                await loadData();
+                renderAdminOrders();
             }
 
-            function rejectOrder(id) {
-                const order = orders.find(o => o.id === id);
-                if (order) {
-                    order.status = 'rejected';
-                    saveOrders();
-                    renderAdminOrders();
-                }
+            async function rejectOrder(id) {
+                await fetch(`/api/orders/${id}/status`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: 'rejected'})
+                });
+                await loadData();
+                renderAdminOrders();
             }
 
-            function deleteOrder(id) {
-                orders = orders.filter(o => o.id !== id);
-                saveOrders();
+            async function deleteOrder(id) {
+                await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+                await loadData();
                 renderAdminOrders();
             }
 
@@ -368,12 +446,13 @@ def read_root():
                 document.getElementById("admin-login-modal").classList.add("hidden");
             }
 
-            function submitAdminLogin() {
+            async function submitAdminLogin() {
                 const password = document.getElementById("admin-password-input").value;
                 if (password === "tatik") {
                     closeAdminLogin();
                     document.getElementById("store-section").classList.add("hidden");
                     document.getElementById("admin-section").classList.remove("hidden");
+                    await loadData();
                     renderAdminList();
                 } else {
                     alert("Nesprávne heslo!");
@@ -381,13 +460,13 @@ def read_root():
                 }
             }
 
-            function showStore() {
+            async function showStore() {
                 document.getElementById("admin-section").classList.add("hidden");
                 document.getElementById("store-section").classList.remove("hidden");
-                renderProducts();
+                await loadData();
             }
 
-            function addProduct() {
+            async function addProduct() {
                 const name = document.getElementById("new-name").value;
                 const price = parseFloat(document.getElementById("new-price").value);
                 const stock = parseInt(document.getElementById("new-stock").value) || 10;
@@ -401,9 +480,11 @@ def read_root():
                     return;
                 }
 
-                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-                products.push({ id: newId, name, price, stock, bulkPrice, bulkMin, icon, desc });
-                saveProducts();
+                await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({name, price, stock, bulkPrice, bulkMin, icon, desc})
+                });
 
                 document.getElementById("new-name").value = "";
                 document.getElementById("new-price").value = "";
@@ -413,28 +494,30 @@ def read_root():
                 document.getElementById("new-icon").value = "";
                 document.getElementById("new-desc").value = "";
 
+                await loadData();
                 renderAdminList();
                 alert("Produkt bol úspešne pridaný!");
             }
 
-            function updateStock(id) {
+            async function updateStock(id) {
                 const inputVal = parseInt(document.getElementById(`stock-input-${id}`).value);
                 if (isNaN(inputVal) || inputVal < 0) {
                     alert("Zadajte platné číslo pre sklad.");
                     return;
                 }
-                const product = products.find(p => p.id === id);
-                if (product) {
-                    product.stock = inputVal;
-                    saveProducts();
-                    alert(`Sklad pre "${product.name}" bol aktualizovaný na ${inputVal} ks.`);
-                    renderAdminList();
-                }
+                await fetch(`/api/products/${id}/stock`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({stock: inputVal})
+                });
+                await loadData();
+                alert("Sklad bol aktualizovaný.");
+                renderAdminList();
             }
 
-            function deleteProduct(id) {
-                products = products.filter(p => p.id !== id);
-                saveProducts();
+            async function deleteProduct(id) {
+                await fetch(`/api/products/${id}`, { method: 'DELETE' });
+                await loadData();
                 renderAdminList();
             }
 
@@ -525,7 +608,7 @@ def read_root():
                 }
             }
 
-            function checkout() {
+            async function checkout() {
                 const name = document.getElementById("name").value.trim();
                 const address = document.getElementById("address").value.trim();
                 const hasClubCard = document.getElementById("has-club-card").checked;
@@ -554,32 +637,26 @@ def read_root():
                 }
 
                 const newOrder = {
-                    id: Date.now(),
                     name: name,
                     address: address,
-                    items: [...cart],
+                    items: cart,
                     total: totalPrice,
                     discount: hasClubCard && clubEmail !== "" && clubNumber.length === 6,
                     status: 'pending'
                 };
 
-                orders.unshift(newOrder);
-                saveOrders();
-
-                cart.forEach(cartItem => {
-                    const prod = products.find(p => p.id === cartItem.id);
-                    if (prod) {
-                        prod.stock -= cartItem.qty;
-                    }
+                await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(newOrder)
                 });
-                saveProducts();
 
                 document.getElementById("checkout-section").classList.add("hidden");
                 document.getElementById("cart-items").innerHTML = "";
                 document.getElementById("success-msg").classList.remove("hidden");
                 cart = [];
                 updateCartUI();
-                renderProducts();
+                await loadData();
             }
 
             function resetCart() {
@@ -592,8 +669,7 @@ def read_root():
                 document.getElementById("club-card-details").classList.add("hidden");
             }
 
-            renderProducts();
-            updateAdminBadge();
+            loadData();
         </script>
     </body>
     </html>
